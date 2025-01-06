@@ -4,16 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>University Management</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <Link rel="stylesheet" href="style.css"></Link>
 </head>
 <body>
     <nav class="navbar">
+        <a href="#" data-target="classroomsSection" style=" font-weight: bold; font-size: 30px; background-color: rgba(0, 255, 64, 0.706); display:flex ; justify-content: center; align-items: center;">University Management</a>
         <a href="#" data-target="classroomsSection" class="active">Classrooms</a>
         <a href="#" data-target="coursesSection">Courses</a>
         <a href="#" data-target="departmentsSection">Departments</a>
         <a href="#" data-target="enrollmentsSection">Enrollments</a>
         <a href="#" data-target="studentsSection">Students</a>
         <a href="#" data-target="professorsSection">Professors</a>
+
+        <!-- Chart button -->
+
+        <button id="showChartButton" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#chartModal" style="margin-bottom: 18px; margin-right: 10px">
+            Show Chart
+          </button>
     </nav>
 
     <section id="classroomsSection" class="active">
@@ -128,7 +137,80 @@
     <button onclick="addProfessorPrompt()">Add Professor</button>
 </section>
 
+<!-- Chart Modal -->
+ <!-- Modal for Chart -->
+<div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="chartModalLabel">Students per Department</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <canvas id="barChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- bar chart  -->
+  <script>
+    document.getElementById('showChartButton').addEventListener('click', () => {
+      // Fetch the data from your API
+      fetch('http://localhost:3010/api/students') // Replace with your API endpoint
+        .then(response => response.json())
+        .then(data => {
+          // Extract department names and student counts from the data
+          const departments = data.map(item => item.department);
+          const studentCounts = data.map(item => item.student_count);
+  
+          // Destroy the chart if it already exists to prevent overlap
+          if (window.myBarChart) {
+            window.myBarChart.destroy();
+          }
+  
+          // Create the bar chart
+          const ctx = document.getElementById('barChart').getContext('2d');
+          window.myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: departments, // X-axis labels
+              datasets: [{
+                label: 'Number of Students',
+                data: studentCounts, // Y-axis data
+                backgroundColor: 'rgba(75, 192, 192, 0.2)', // Bar color
+                borderColor: 'rgba(75, 192, 192, 1)', // Border color
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top'
+                },
+                tooltip: {
+                  enabled: true
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
+        })
+        .catch(error => console.error('Error fetching data:', error));
+    });
+  </script>
+  
 
     <script src="script.js"></script>
 </body>

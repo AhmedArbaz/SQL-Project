@@ -472,6 +472,31 @@ app.delete('/professors/:id', async (req, res) => {
     }
 });
 
+
+// chart API
+// API endpoint
+app.get('/api/students', async (req, res) => {
+    try {
+        const query = `
+            SELECT d.DepartmentName AS department, COUNT(s.StudentID) AS student_count
+            FROM students s
+            INNER JOIN enrollments e ON s.StudentID = e.StudentID
+            INNER JOIN courses c ON e.CourseID = c.CourseID
+            INNER JOIN departments d ON c.DepartmentID = d.DepartmentID
+            GROUP BY d.DepartmentName
+        `;
+
+        // Execute the corrected query
+        const [results] = await db.execute(query);
+
+        res.json(results); // Send the results as a JSON response
+    } catch (err) {
+        console.error('Error executing query:', err);
+        res.status(500).json({ error: 'Error fetching data', details: err.message });
+    }
+});
+
+  
 // Define Port
 const port = 3010;
 app.listen(port, () => {
