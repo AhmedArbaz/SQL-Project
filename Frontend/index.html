@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Management</title>
+    <Link rel="stylesheet" href="style.css"></Link>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" data-target="classroomsSection" class="active">Classrooms</a>
+        <a href="#" data-target="coursesSection">Courses</a>
+        <a href="#" data-target="departmentsSection">Departments</a>
+        <a href="#" data-target="enrollmentsSection">Enrollments</a>
+        <a href="#" data-target="studentsSection">Students</a>
+        <a href="#" data-target="professorsSection">Professors</a>
+    </nav>
+
+    <section id="classroomsSection" class="active">
+        <h1>Classrooms</h1>
+        <table id="classroomsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Room Number</th>
+                    <th>Building</th>
+                    <th>Capacity</th>
+                    <th>Floor</th>
+                    <th>Projector</th>
+                    <th>Lab</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="addClassroomPrompt()">Add Classroom</button>
+    </section>
+
+    <section id="coursesSection">
+        <h1>Courses</h1>
+        <table id="coursesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Course Name</th>
+                    <th>Credits</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="addCoursePrompt()">Add Course</button>
+    </section>
+
+    <!-- Similar sections for Departments, Enrollments, Students, and Professors -->
+
+    <script src="script.js"></script>
+</body>
+</html>
