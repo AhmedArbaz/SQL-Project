@@ -56,6 +56,80 @@
 
     <!-- Similar sections for Departments, Enrollments, Students, and Professors -->
 
+    <!-- Departments Section -->
+<section id="departmentsSection">
+    <h1>Departments</h1>
+    <table id="departmentsTable">
+        <thead>
+            <tr>
+                <th>Department ID</th>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="addDepartmentPrompt()">Add Department</button>
+</section>
+
+<!-- Enrollments Section -->
+<section id="enrollmentsSection">
+    <h1>Enrollments</h1>
+    <table id="enrollmentsTable">
+        <thead>
+            <tr>
+                <th>Enrollment ID</th>
+                <th>Student ID</th>
+                <th>Course ID</th>
+                <th>Grade</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="addEnrollmentPrompt()">Add Enrollment</button>
+</section>
+
+<!-- Students Section -->
+<section id="studentsSection">
+    <h1>Students</h1>
+    <table id="studentsTable">
+        <thead>
+            <tr>
+                <th>StudentID</th>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>EnrollmentDate</th>
+                <th>Major</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="addStudentPrompt()">Add Student</button>
+</section>
+
+<!-- Professors Section -->
+<section id="professorsSection">
+    <h1>Professors</h1>
+    <table id="professorsTable">
+        <thead>
+            <tr>
+                <th>ProfessorID</th>
+                <th>FirstName</th>
+                <th>LastName</th>
+                <th>HireDate</th>
+                <th>DepartmentID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="addProfessorPrompt()">Add Professor</button>
+</section>
+
+
+
     <script src="script.js"></script>
 </body>
 </html>

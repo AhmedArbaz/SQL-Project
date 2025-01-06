@@ -115,7 +115,8 @@ async function deleteClassroom(classroomId) {
     }
 }
 
-// Repeated CRUD Functions for Courses
+
+// CRUD Functions for Courses
 async function fetchCourses() {
     try {
         const response = await fetch('http://localhost:3010/courses');
@@ -141,6 +142,82 @@ async function fetchCourses() {
         console.error('Error fetching courses:', error);
     }
 }
+async function addCoursePrompt() {
+    const courseName = prompt('Enter Course Name:');
+    const departmentId = parseInt(prompt('Enter Department ID:'), 10);
+    const credits = parseInt(prompt('Enter Credits:'), 10);
+
+    // Validate input
+    if (!courseName || isNaN(departmentId) || isNaN(credits)) {
+        alert('All fields are required and must be valid.');
+        return;
+    }
+
+    // Create the course object
+    const course = {
+        CourseName: courseName,
+        DepartmentID: departmentId,
+        Credits: credits,
+    };
+
+    try {
+        const response = await fetch('http://localhost:3010/courses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(course),
+        });
+
+        if (response.ok) {
+            alert('Course added successfully!');
+            fetchCourses(); // Refresh the courses table
+        } else {
+            const errorData = await response.json();
+            console.error('Error adding course:', errorData);
+            alert(`Error: ${errorData.error}`);
+        }
+    } catch (error) {
+        console.error('Error adding course:', error);
+        alert('An error occurred while adding the course.');
+    }
+}
+
+async function editCourse(courseId) {
+    const courseName = prompt('Enter new Course Name:');
+    const credits = prompt('Enter new Credits:');
+    const departmentId = prompt('Enter new Department ID:');
+
+    if (courseName && credits && departmentId) {
+        await updateCourse(courseId, { CourseName: courseName, Credits: credits, DepartmentID: departmentId });
+        fetchCourses();
+    }
+}
+
+async function updateCourse(courseId, updatedData) {
+    try {
+        await fetch(`http://localhost:3010/courses/${courseId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData),
+        });
+    } catch (error) {
+        console.error('Error updating course:', error);
+    }
+}
+
+async function deleteCourse(courseId) {
+    if (confirm('Are you sure you want to delete this course?')) {
+        try {
+            await fetch(`http://localhost:3010/courses/${courseId}`, {
+                method: 'DELETE',
+            });
+            fetchCourses();
+        } catch (error) {
+            console.error('Error deleting course:', error);
+        }
+    }
+}
+
+
 // CRUD Functions for Departments
 async function fetchDepartments() {
     try {
@@ -166,23 +243,42 @@ async function fetchDepartments() {
     }
 }
 
+// Function to add a new department functionality like courses added function
 async function addDepartmentPrompt() {
     const departmentName = prompt('Enter Department Name:');
-    if (departmentName) {
-        await addDepartment({ DepartmentName: departmentName });
-        fetchDepartments();
+
+    // Validate input
+    if (!departmentName) {
+        alert('All fields are required.');
+        return;
     }
+
+    const department = {
+        DepartmentName: departmentName,        
+    };
+
+    await addDepartment(department);
+    fetchDepartments(); // Refresh the departments list
 }
 
 async function addDepartment(department) {
     try {
-        await fetch('http://localhost:3010/departments', {
+        const response = await fetch('http://localhost:3010/departments', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(department),
         });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error adding department:', errorData);
+            alert(`Error: ${errorData.error}`);
+        } else {
+            alert('Department added successfully!');
+        }
     } catch (error) {
         console.error('Error adding department:', error);
+        alert('An error occurred while adding the department.');
     }
 }
 
@@ -231,7 +327,7 @@ async function fetchEnrollments() {
                 <td>${enrollment.EnrollmentID}</td>
                 <td>${enrollment.StudentID}</td>
                 <td>${enrollment.CourseID}</td>
-                <td>${enrollment.EnrollmentDate}</td>
+                <td>${enrollment.Grade}</td>
                 <td>
                     <button onclick="editEnrollment(${enrollment.EnrollmentID})">Edit</button>
                     <button onclick="deleteEnrollment(${enrollment.EnrollmentID})">Delete</button>
@@ -247,9 +343,9 @@ async function fetchEnrollments() {
 async function addEnrollmentPrompt() {
     const studentId = prompt('Enter Student ID:');
     const courseId = prompt('Enter Course ID:');
-    const enrollmentDate = prompt('Enter Enrollment Date:');
-    if (studentId && courseId && enrollmentDate) {
-        await addEnrollment({ StudentID: studentId, CourseID: courseId, EnrollmentDate: enrollmentDate });
+    const Grade = prompt('Enter Grade:');
+    if (studentId && courseId && Grade) {
+        await addEnrollment({ StudentID: studentId, CourseID: courseId, Grade: Grade });
         fetchEnrollments();
     }
 }
@@ -269,9 +365,9 @@ async function addEnrollment(enrollment) {
 async function editEnrollment(enrollmentId) {
     const studentId = prompt('Enter new Student ID:');
     const courseId = prompt('Enter new Course ID:');
-    const enrollmentDate = prompt('Enter new Enrollment Date:');
-    if (studentId && courseId && enrollmentDate) {
-        await updateEnrollment(enrollmentId, { StudentID: studentId, CourseID: courseId, EnrollmentDate: enrollmentDate });
+    const Grade = prompt('Enter Grade:');
+    if (studentId && courseId && Grade) {
+        await updateEnrollment(enrollmentId, { StudentID: studentId, CourseID: courseId, Grade: Grade });
         fetchEnrollments();
     }
 }
@@ -311,10 +407,10 @@ async function fetchStudents() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${student.StudentID}</td>
-                <td>${student.Name}</td>
-                <td>${student.Age}</td>
-                <td>${student.Email}</td>
-                <td>${student.DepartmentID}</td>
+                <td>${student.FirstName} </td>
+                <td>${student.LastName}</td>
+                <td>${student.EnrollmentDate}</td>
+                <td>${student.Major}</td>
                 <td>
                     <button onclick="editStudent(${student.StudentID})">Edit</button>
                     <button onclick="deleteStudent(${student.StudentID})">Delete</button>
@@ -328,15 +424,22 @@ async function fetchStudents() {
 }
 
 async function addStudentPrompt() {
-    const name = prompt('Enter Student Name:');
-    const age = prompt('Enter Student Age:');
-    const email = prompt('Enter Student Email:');
-    const departmentId = prompt('Enter Department ID:');
-    if (name && age && email) {
-        await addStudent({ Name: name, Age: age, Email: email, DepartmentID: departmentId });
-        fetchStudents();
+    const FirstName = prompt('Enter Student First Name:');
+    const LastName = prompt('Enter Student Last Name:');
+    const EnrollmentDate = prompt('Enter Student Enrollment Date (YYYY-MM-DD):');
+    const Major = prompt('Enter Major:');
+
+    // Validate inputs
+    if (!FirstName || !LastName || !EnrollmentDate || !Major) {
+        alert('All fields (First Name, Last Name, Enrollment Date, Major) are required.');
+        return;
     }
+
+    // Call addStudent function with collected data
+    await addStudent({ FirstName, LastName, EnrollmentDate, Major });
+    fetchStudents(); // Refresh the student list
 }
+
 
 async function addStudent(student) {
     try {
@@ -351,14 +454,28 @@ async function addStudent(student) {
 }
 
 async function editStudent(studentId) {
-    const name = prompt('Enter new Student Name:');
-    const age = prompt('Enter new Student Age:');
-    const email = prompt('Enter new Student Email:');
-    if (name && age && email) {
-        await updateStudent(studentId, { Name: name, Age: age, Email: email });
-        fetchStudents();
+    const FirstName = prompt('Enter Student First Name:');
+    const LastName = prompt('Enter Student Last Name:');
+    const EnrollmentDate = prompt('Enter Student Enrollment Date (YYYY-MM-DD):');
+    const Major = prompt('Enter Major:');
+
+    // Check if at least one field is provided
+    if (!FirstName && !LastName && !EnrollmentDate && !Major) {
+        alert('At least one field must be updated.');
+        return;
     }
+
+    // Call updateStudent function with collected data
+    const updatedData = {};
+    if (FirstName) updatedData.FirstName = FirstName;
+    if (LastName) updatedData.LastName = LastName;
+    if (EnrollmentDate) updatedData.EnrollmentDate = EnrollmentDate;
+    if (Major) updatedData.Major = Major;
+
+    await updateStudent(studentId, updatedData);
+    fetchStudents(); // Refresh the student list
 }
+
 
 async function updateStudent(studentId, updatedData) {
     try {
@@ -395,8 +512,9 @@ async function fetchProfessors() {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${professor.ProfessorID}</td>
-                <td>${professor.Name}</td>
-                <td>${professor.Email}</td>
+                <td>${professor.FirstName}</td>
+                <td>${professor.LastName}</td>
+                <td>${professor.HireDate}</td>
                 <td>${professor.DepartmentID}</td>
                 <td>
                     <button onclick="editProfessor(${professor.ProfessorID})">Edit</button>
@@ -411,11 +529,12 @@ async function fetchProfessors() {
 }
 
 async function addProfessorPrompt() {
-    const name = prompt('Enter Professor Name:');
-    const email = prompt('Enter Professor Email:');
-    const departmentId = prompt('Enter Department ID:');
-    if (name && email) {
-        await addProfessor({ Name: name, Email: email, DepartmentID: departmentId });
+    const FirstName = prompt('Enter Professor First Name:');
+    const LastName = prompt('Enter Professor Last Name:');
+    const HireDate = prompt('Enter Professor Hire Date (YYYY-MM-DD):');
+    const DepartmentID = prompt('Enter Department ID:');
+    if (FirstName && LastName && HireDate && DepartmentID) {
+        await addProfessor({ FirstName: FirstName, LastName: LastName, HireDate: HireDate, DepartmentID: DepartmentID });
         fetchProfessors();
     }
 }
@@ -433,10 +552,13 @@ async function addProfessor(professor) {
 }
 
 async function editProfessor(professorId) {
-    const name = prompt('Enter new Professor Name:');
-    const email = prompt('Enter new Professor Email:');
-    if (name && email) {
-        await updateProfessor(professorId, { Name: name, Email: email });
+    const FirstName = prompt('Enter Professor First Name:');
+    const LastName = prompt('Enter Professor Last Name:');
+    const HireDate = prompt('Enter Professor Hire Date (YYYY-MM-DD):');
+    const DepartmentID = prompt('Enter Department ID:');
+
+    if (FirstName || LastName || HireDate || DepartmentID || name || email) {
+        await updateProfessor(professorId, { FirstName: FirstName, LastName: LastName, HireDate: HireDate, DepartmentID: DepartmentID });
         fetchProfessors();
     }
 }

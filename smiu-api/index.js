@@ -132,23 +132,25 @@ app.get('/courses', async (req, res) => {
     }
 });
 
-// Add a course
 app.post('/courses', async (req, res) => {
-    const { CourseName, DepartmentID, ProfessorID, Credits } = req.body;
+    const { CourseName, DepartmentID, Credits } = req.body;
 
-    if (!CourseName || !DepartmentID || !ProfessorID || !Credits) {
-        return res.status(400).json({ error: 'Missing required fields: CourseName, DepartmentID, ProfessorID, Credits are mandatory.' });
+    // Validate input fields
+    if (!CourseName || !DepartmentID || !Credits) {
+        return res.status(400).json({
+            error: 'Missing required fields: CourseName, DepartmentID, and Credits are mandatory.',
+        });
     }
 
     try {
         const [result] = await db.execute(
-            `INSERT INTO courses (CourseName, DepartmentID, ProfessorID, Credits) 
-             VALUES (?, ?, ?, ?)`,
-            [CourseName, DepartmentID, ProfessorID, Credits]
+            `INSERT INTO courses (CourseName, DepartmentID, Credits) 
+             VALUES (?, ?, ?)`,
+            [CourseName, DepartmentID, Credits]
         );
         res.status(201).json({ message: 'Course added successfully', id: result.insertId });
     } catch (error) {
-        console.error(error);
+        console.error('Database error:', error);
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
@@ -206,20 +208,23 @@ app.get('/departments', async (req, res) => {
 
 // Add a department
 app.post('/departments', async (req, res) => {
-    const { DepartmentName, DepartmentHead } = req.body;
+    const { DepartmentName } = req.body;
 
     if (!DepartmentName) {
-        return res.status(400).json({ error: 'Missing required field: DepartmentName is mandatory.' });
+        return res.status(400).json({
+            error: 'Missing required fields: DepartmentName is mandatory.',
+        });
     }
 
     try {
         const [result] = await db.execute(
-            `INSERT INTO departments (DepartmentName, DepartmentHead) VALUES (?, ?)`,
-            [DepartmentName, DepartmentHead || null]
+            `INSERT INTO departments (DepartmentName) 
+             VALUES (?)`,
+            [DepartmentName]
         );
         res.status(201).json({ message: 'Department added successfully', id: result.insertId });
     } catch (error) {
-        console.error(error);
+        console.error('Database error:', error);
         res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
@@ -276,16 +281,17 @@ app.get('/enrollments', async (req, res) => {
 });
 
 app.post('/enrollments', async (req, res) => {
-    const { StudentID, CourseID } = req.body;
+    const { StudentID, CourseID, Grade } = req.body;
+    console.log(req.body);
 
-    if (!StudentID || !CourseID) {
-        return res.status(400).json({ error: 'Missing required fields: StudentID and CourseID are mandatory.' });
+    if (!StudentID || !CourseID || !Grade) {
+        return res.status(400).json({ error: 'Missing required fields: StudentID, CourseID and Grade are mandatory.' });
     }
 
     try {
         const [result] = await db.execute(
-            `INSERT INTO enrollments (StudentID, CourseID) VALUES (?, ?)`,
-            [StudentID, CourseID]
+            `INSERT INTO enrollments (StudentID, CourseID, Grade) VALUES (?, ?,?)`,
+            [StudentID, CourseID,Grade]
         );
         res.status(201).json({ message: 'Enrollment added successfully', id: result.insertId });
     } catch (error) {
@@ -331,6 +337,74 @@ app.delete('/enrollments/:id', async (req, res) => {
     }
 });
 
+
+// CRUD Operations for Students
+app.get('/students', async (req, res) => {
+    try {
+        const [results] = await db.execute('SELECT * FROM students');
+        res.json(results);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
+app.post('/students', async (req, res) => {
+    const { FirstName, LastName,EnrollmentDate,Major,StudentID } = req.body;
+
+    if (!FirstName || !LastName || !EnrollmentDate || !Major || !StudentID) {
+        return res.status(400).json({ error: 'Missing required field: FirstName, LastName, EnrollmentDate and Major is mandatory.' });
+    }
+
+    try {
+        const [result] = await db.execute(
+            `INSERT INTO students (FirstName, LastName, EnrollmentDate, Major) VALUES (?, ?, ?, ?)`,
+            [FirstName, LastName, EnrollmentDate, Major || null]
+        );
+        res.status(201).json({ message: 'Student added successfully', id: result.insertId });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
+app.put('/students/:id', async (req, res) => {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    if (Object.keys(updateData).length === 0) {
+        return res.status(400).json({ error: 'At least one field is required to update.' });
+    }
+
+    try {
+        const { query, values } = buildUpdateQuery('students', updateData, 'StudentID', id);
+        const [result] = await db.execute(query, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+        
+        res.json({ message: 'Student updated successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
+app.delete('/students/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const [result] = await db.execute('DELETE FROM students WHERE StudentID = ?', [id]);
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'Student not found' });
+        }
+        res.json({ message: 'Student deleted successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
 // CRUD Operations for Professors
 app.get('/professors', async (req, res) => {
     try {
@@ -343,16 +417,16 @@ app.get('/professors', async (req, res) => {
 });
 
 app.post('/professors', async (req, res) => {
-    const { ProfessorName, DepartmentID } = req.body;
+    const {  FirstName, LastName, HireDate, DepartmentID } = req.body;
 
-    if (!ProfessorName) {
-        return res.status(400).json({ error: 'Missing required field: ProfessorName is mandatory.' });
+    if (!FirstName || !LastName || !HireDate || !DepartmentID) {
+        return res.status(400).json({ error: 'Missing required field: FirstName, LastName, HireDate and Department is mandatory.' });
     }
 
     try {
         const [result] = await db.execute(
-            `INSERT INTO professors (ProfessorName, DepartmentID) VALUES (?, ?)`,
-            [ProfessorName, DepartmentID || null]
+            `INSERT INTO professors (FirstName, LastName, HireDate, DepartmentID) VALUES (?, ?, ?, ?)`,
+            [FirstName, LastName, HireDate, DepartmentID || null]
         );
         res.status(201).json({ message: 'Professor added successfully', id: result.insertId });
     } catch (error) {
@@ -392,73 +466,6 @@ app.delete('/professors/:id', async (req, res) => {
             return res.status(404).json({ error: 'Professor not found' });
         }
         res.json({ message: 'Professor deleted successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
-
-// CRUD Operations for Students
-app.get('/students', async (req, res) => {
-    try {
-        const [results] = await db.execute('SELECT * FROM students');
-        res.json(results);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
-
-app.post('/students', async (req, res) => {
-    const { StudentName, DepartmentID } = req.body;
-
-    if (!StudentName) {
-        return res.status(400).json({ error: 'Missing required field: StudentName is mandatory.' });
-    }
-
-    try {
-        const [result] = await db.execute(
-            `INSERT INTO students (StudentName, DepartmentID) VALUES (?, ?)`,
-            [StudentName, DepartmentID || null]
-        );
-        res.status(201).json({ message: 'Student added successfully', id: result.insertId });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
-
-app.put('/students/:id', async (req, res) => {
-    const { id } = req.params;
-    const updateData = req.body;
-
-    if (Object.keys(updateData).length === 0) {
-        return res.status(400).json({ error: 'At least one field is required to update.' });
-    }
-
-    try {
-        const { query, values } = buildUpdateQuery('students', updateData, 'StudentID', id);
-        const [result] = await db.execute(query, values);
-
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Student not found' });
-        }
-
-        res.json({ message: 'Student updated successfully' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
-
-app.delete('/students/:id', async (req, res) => {
-    const { id } = req.params;
-    try {
-        const [result] = await db.execute('DELETE FROM students WHERE StudentID = ?', [id]);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ error: 'Student not found' });
-        }
-        res.json({ message: 'Student deleted successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error', details: error.message });
