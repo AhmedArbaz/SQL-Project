@@ -350,16 +350,16 @@ app.get('/students', async (req, res) => {
 });
 
 app.post('/students', async (req, res) => {
-    const { FirstName, LastName,EnrollmentDate,Major,StudentID } = req.body;
+    const { FirstName, LastName, EnrollmentDate, Major } = req.body;
 
-    if (!FirstName || !LastName || !EnrollmentDate || !Major || !StudentID) {
-        return res.status(400).json({ error: 'Missing required field: FirstName, LastName, EnrollmentDate and Major is mandatory.' });
+    if (!FirstName || !LastName || !EnrollmentDate || !Major) {
+        return res.status(400).json({ error: 'Missing required fields: FirstName, LastName, EnrollmentDate, and Major are mandatory.' });
     }
 
     try {
         const [result] = await db.execute(
             `INSERT INTO students (FirstName, LastName, EnrollmentDate, Major) VALUES (?, ?, ?, ?)`,
-            [FirstName, LastName, EnrollmentDate, Major || null]
+            [FirstName, LastName, EnrollmentDate, Major]
         );
         res.status(201).json({ message: 'Student added successfully', id: result.insertId });
     } catch (error) {
