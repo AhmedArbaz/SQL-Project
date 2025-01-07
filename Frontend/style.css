@@ -7,15 +7,22 @@ body {
 .navbar {
     display: flex;
     background: #333;
-    padding: 10px;
+    padding: 5px;
 }
 
 .navbar a {
+    display: flex;
     color: white;
     text-decoration: none;
     padding: 10px 20px;
-    margin-right: 10px;
     border-radius: 5px;
+}
+
+.navbar :nth-child(1){
+    display: flex;
+    justify-content: flex-start;
+    font-weight: bold;
+    font-size: 30px;
 }
 
 .navbar a.active {
@@ -40,7 +47,19 @@ table {
 table th, table td {
     border: 1px solid #ddd;
     padding: 10px;
-    text-align: left;
+    text-align: center;
+
+}
+table{
+    border-radius: 100px;
+}
+
+th{
+    background-color: #33c956;
+    color: white;
+    font-size: large;
+    text-transform: capitalize;
+    
 }
 
 button {
@@ -51,6 +70,10 @@ button {
     border: none;
     cursor: pointer;
     border-radius: 5px;
+}
+
+button :nth-child(2){
+    background-color: red;
 }
 
 button:hover {
